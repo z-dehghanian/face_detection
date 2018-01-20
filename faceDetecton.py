@@ -1,9 +1,3 @@
-
-# coding: utf-8
-
-# In[39]:
-
-
 from PIL import Image
 from numpy import  array
 import numpy as np
@@ -55,12 +49,58 @@ for i in range(len(x_test)):
 #toimage(x_train[1]).show()
 
 u, s, v = np.linalg.svd(x_train, full_matrices=True)
-print(v.shape)
-for i in range(0,10):
+#print(v.shape)
+#for i in range(0,10):
    # toimage(v[i]).show()
-    plt.imshow(v[i], cmap='gray')
-    plt.show()
+  #  plt.imshow(v[i], cmap='gray')
+  #  plt.show()
+
+error1 = []
+for r in range (1,200) :
+    error = 0
+    for i in range (0,r) :
+        temp =  np.matrix(u[i][:,:r]) * np.diag(s[i][:r]) *  np.matrix(v[i][:r,:])
+        error += (np.abs(temp - x_train[i])).sum() / (len(temp) * len(temp))
+        error1.append(error / 540)
+
+    #plt.plot(error1)
+    #plt.show()
+
+    
+detection_err = []    
+r = 200
+#for r in range(1, 201):
+f = np.zeros((540, r))
+a = np.reshape(x_train, (540, 2500))
+b = np.reshape(v[0:r].T, (2500, r))
+
+#print b[1]
+
+np.matmul(a, b, f)
+
+
+f_test = np.zeros((100, r))
+a_test = np.reshape(x_test, (100, 2500))
 
 
 
+np.matmul(a_test, b, f_test)
 
+
+
+logreg = linear_model.LogisticRegression(C=1e5)
+logreg.fit(f, y_train)
+
+y_pred = logreg.predict(f_test)
+
+sum = 0
+
+for i in range(len(y_test)):
+    if y_test[i] != y_pred[i]:
+        sum += 1
+
+detection_err.append(sum)
+
+print(sum)
+plt.plot(detection_err)
+plt.show()
